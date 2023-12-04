@@ -1,0 +1,58 @@
+# Database Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loginservicedb
+  namespace: chat-app
+spec:
+  selector:
+    matchLabels:
+      app: login-service-mysql
+  template:
+    metadata:
+      labels:
+        app: login-service-mysql
+        name: loginservicedb
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_DATABASE
+          value: chat_app
+        - name: MYSQL_ROOT_PASSWORD
+          value: root
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+          - name: mysql-initdb-volume
+            mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mysql-initdb-volume
+        configMap:
+          name: config-data-loginservice
+---
+
+# App Deployment 
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: loginservice
+  namespace: chat-app
+
+spec:
+  selector:
+    matchLabels:
+      app: login-service
+  template:
+    metadata:
+      name : loginservice
+      labels:
+        app: login-service
+    spec:
+      containers:
+      - name: loginservice
+        image: huy21it490/loginservice:latest
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 12345
